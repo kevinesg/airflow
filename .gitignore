@@ -1,0 +1,15 @@
+# Python compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Airflow logs and SQLite database
+logs/
+airflow.db
+
+# Airflow configurations
+webserver_config.py
+
+# Airflow PID files
+*.pid

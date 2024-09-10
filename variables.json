@@ -1,0 +1,7 @@
+{
+    "dir__dbt": "/home/kevinesg/github/dbt",
+    "dir__scripts": "/home/kevinesg/github/scripts",
+    "file__google_service_account": "~/credentials/google-service-account.json",
+    "git_pull__dbt": "cd ~/github/dbt && git pull",
+    "git_pull__scripts": "cd ~/github/scripts && git pull"
+}
