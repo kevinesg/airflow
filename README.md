@@ -1,5 +1,26 @@
 # Apache Airflow
 
+## Introduction
+This git repository contains the files needed for the Airflow instance (including DAGs, airflow config file, etc.). The Airflow Webserver can be accessed publicly at [airflow.kevinesg.com](airflow.kevinesg.com) with the following log-in credentials:
+````
+username: viewer
+password: airflow
+````
+This user only has read access to everything.
+
+## Table of Contents
+1. [Release Notes](#release-notes)
+2. [Pre-installation Notes](#pre-installation-notes)
+3. [Installation](#installation)
+4. [Deploy Airflow Webserver to a Domain](#deploy-airflow-webserver-to-a-domain)
+5. [Folder Structure](#folder-structure)
+
+##
+## Release Notes
+* created initial setup of git repo and Airflow instance
+* deployed Airflow webserver to [airflow.kevinesg.com](airflow.kevinesg.com)
+
+##
 ## Pre-installation Notes
 * I strongly recommend that you use Linux-- either bare-metal, via a (headless) virtual machine, or via WSL2 (if you're using Windows). Personally, I use a GCP VM for production, and a local headless VM for the development environment, and this Github repository, so there is a CI/CD workflow.
 * Another thing I strongly recommend is use a virtual environment of your choice. In my case, I prefer to use [Miniconda](https://docs.anaconda.com/miniconda/).
@@ -103,6 +124,96 @@
 13. Try to create Airflow DAGs on `~/github/airflow/dags` (create `/dags` if it) and check if it will appear the UI after a bit (or after clicking the manual parsing button for Airflow 2.10 onwards). In my case, the DAGs inside `/dags` folder are reflected in the Airflow webserver UI as seen below:
 
 ![Airflow webserver UI](https://i.imgur.com/8GAv6dl.png)
+
+##
+## Deploy Airflow Webserver to a Domain
+### GCP VM
+Note: Since I use a GCP VM for my git repos, the following steps are catered to this use case and may not be applicable to you.
+1. Reserve a static IP.
+    * Go to GCP Console -> VPC Network -> IP Address. Here's where I assign a static external IP so that the IP doesn't change when the VM restarts.
+    * You might need to scroll to the right to find the three dots. Click it to change the IP to static, then assign a name.
+2. Open HTTP/HTTPS Ports in GCP Firewall.
+    * Go to VPC Network -> Firewall.
+    * Create a firewall rule.
+        * Name: give a name like "allow-http".
+        * Network: Select the network where your VM instance is located (usually default).
+        * Priority: You can leave this at the default value of 1000.
+        * Direction of traffic: Choose "Ingress" to allow incoming traffic.
+        * Action on match: Choose "Allow" to allow the traffic.
+        * Targets: Select "All instances in the network" or specify your VM instance if you want to restrict the rule to only that instance.
+        * Source filter: Choose "IP ranges".
+        * To allow all external traffic, enter 0.0.0.0/0 (note: this allows traffic from anywhere, which is suitable for web access but could be a security risk if not managed).
+        * Protocols and ports: Check the box for "tcp" and enter `80` to allow HTTP traffic.
+    * Double-check everything then click `Create` once done.
+    * You should see the newly-created firewall rule.
+    * Repeat the same steps for `Name: "allow-https"` and `tcp: 443` instead of `80` for HTTPS.
+
+### Nginx
+1. Install Nginx via `sudo apt install nginx`
+2. Configure nginx as reverse proxy.
+    * `sudo nano /etc/nginx/sites-available/default`
+    * Modify the configuration to proxy requests to your Airflow instance running on `localhost:8080` (or on another port depending on your preference, based on `airflow.cfg`). Here’s an example configuration you can add after the default `server` block:
+        ````
+        server {
+            listen 80;
+            server_name airflow.kevinesg.com;
+
+            location / {
+                proxy_pass http://127.0.0.1:8080;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+
+            listen 443 ssl; # managed by Certbot
+            ssl_certificate /etc/letsencrypt/live/airflow.kevinesg.com/fullchain.pem; # managed by Certbot
+            ssl_certificate_key /etc/letsencrypt/live/airflow.kevinesg.com/privkey.pem; # managed by Certbot
+            include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+            ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+        }
+        ````
+    * Save and exit.
+    * Test the nginx configuration for syntax errors via `sudo nginx -t`. If test is successful, restart nginx via `sudo systemctl restart nginx`. Here's the message I got which confirms everything it set up correctly:
+    ````
+    nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+    nginx: configuration file /etc/nginx/nginx.conf test is successful
+    ````
+3. Create ssl certificate.
+    * `sudo apt install certbot python3-certbot-nginx`
+    * `sudo certbot --nginx -d airflow.kevinesg.com`
+
+### Cloudflare
+1. If you don't have one yet, buy your preferred domain name from any provider. In my case I chose [Squarespace](https://www.squarespace.com/). If you decide to do the same, sign up and enter your payment information.
+2. Go to [Cloudflare](https://www.cloudflare.com/products/registrar/) and enter your domain name. In my case I chose the free plan tier. Follow the rest of instructions to complete initial setup.
+3. Update/Setup DNS configuration.
+    * Go to DNS settings.
+    * Create the following records (you will have to create these one at a time):
+        ````
+        Type: A
+        Name: @ # root (in my case, kevinesg.com)
+        Content: <external IP address of your machine that runs airflow>
+        Proxy status: Proxied
+        TTL: Auto
+
+
+        Type: A
+        Name: www # similar to root
+        Content: <external IP address of your machine that runs airflow>
+        Proxy status: Proxied
+        TTL: Auto
+
+
+        Type: A
+        Name: airflow
+        Content: <external IP address of your machine that runs airflow>
+        Proxy status: Proxied
+        TTL: Auto
+        ````
+4. Feel free to read Cloudflare docs and guides as not every case is covered in these steps.
+5. Optional: if you can't load your websites after everything is set up, try to change SSL/TLS encryption to `Full` or `Full (strict)` in SSL/TLS -> Overview.
+
 
 ##
 ## Folder Structure
