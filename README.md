@@ -1,7 +1,7 @@
 # Apache Airflow
 
 ## Introduction
-This git repository contains the files needed for the Airflow instance (including DAGs, airflow config file, etc.). The Airflow Webserver can be accessed publicly at [airflow.kevinesg.com](airflow.kevinesg.com) with the following log-in credentials:
+This git repository contains the files needed for the Airflow instance (including DAGs, airflow config file, etc.). The Airflow Webserver can be accessed publicly at [airflow.kevinesg.com](https://airflow.kevinesg.com) with the following log-in credentials:
 ````
 username: viewer
 password: airflow
@@ -18,7 +18,7 @@ This user only has read access to everything.
 ##
 ## Release Notes
 * created initial setup of git repo and Airflow instance
-* deployed Airflow webserver to [airflow.kevinesg.com](airflow.kevinesg.com)
+* deployed Airflow webserver to [airflow.kevinesg.com](https://airflow.kevinesg.com)
 
 ##
 ## Pre-installation Notes
