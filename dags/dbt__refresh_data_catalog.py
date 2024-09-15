@@ -53,6 +53,7 @@ with DAG(
             python misc/combine_dbt_data_catalog_files.py \
                 --dir={Variable.get('dir__dbt')}/data_warehouse && \
             cd /home/kevinesg/github/kevinesg.github.io && \
+            git pull && \
             git add . && \
             git commit -m 'updated dbt data catalog' && \
             git push -u origin main "
