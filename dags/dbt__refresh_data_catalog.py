@@ -51,13 +51,7 @@ with DAG(
             cd {Variable.get('dir__scripts')} && \
             conda run -n scripts-misc \
             python misc/combine_dbt_data_catalog_files.py \
-                --dir={Variable.get('dir__dbt')}/data_warehouse && \
-            cd {Variable.get('dir__dbt')} && \
-            conda run -n scripts-misc \
-            python {Variable.get('dir__scripts')}/misc/upload_to_gcs_bucket.py \
-                --upload_file='{Variable.get('dir__dbt')}/data_warehouse/target/dbt_data_catalog.html' \
-                --name='dbt_data_catalog.html' \
-                --bucket_name='kevinesg-edr' "
+                --dir={Variable.get('dir__dbt')}/data_warehouse "
     )
 
     generate_dbt_docs
