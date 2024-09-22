@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.models import Variable
+from helper_functions.alerts import send_slack_alert
 
 
 
@@ -36,6 +37,7 @@ with DAG(
     schedule_interval=CRON_SCHEDULE,
     max_active_runs=MAX_ACTIVE_RUNS,
     concurrency=CONCURRENCY,
+    on_failure_callback=send_slack_alert,
     catchup=False,
     default_args=default_args
 ):
