@@ -17,8 +17,9 @@ This user only has read access to everything.
 
 ##
 ## Release Notes
-* created initial setup of git repo and Airflow instance
-* deployed Airflow webserver to [airflow.kevinesg.com](https://airflow.kevinesg.com)
+* 2024-09-10 created initial setup of git repo and Airflow instance
+* 2024-09-15 deployed Airflow webserver to [airflow.kevinesg.com](https://airflow.kevinesg.com)
+* 2024-09-22 created task failure slack alert
 
 ##
 ## Pre-installation Notes
@@ -221,15 +222,28 @@ Note: Since I use a GCP VM for my git repos, the following steps are catered to 
 .
 ├── LICENSE
 ├── README.md
-├── airflow-webserver.pid   # generated when `airflow webserver` runs; do not delete
-├── airflow.cfg             # main Airflow config file for settings like DB, executor, etc.
-├── airflow.db              # default SQLite DB, replaceable with Postgres/MySQL
-├── dags                    # contains all Airflow DAGs (active and inactive)
-│   ├── archived            # inactive DAGs moved here
-│   ├── .airflowignore      # works like .gitignore; to ignore archived/*
-├── logs                    # task logs, also accessible via the UI
-├── variables.json          # variables entered via Airflow webserver UI
-└── webserver_config.py     # generated when `airflow webserver` runs; stores webserver settings
+├── airflow-webserver.pid               # generated when `airflow webserver` runs; do not delete
+├── airflow.cfg                         # main Airflow config file for settings like DB, executor, etc.
+├── airflow.db                          # default SQLie DB, replaceable with Postgres/MySQL
+├── dags                                # contains all tAirflow DAGs (active and inactive)
+│   ├── archived                        # inactive DAGs moved here
+│   ├── .airflowignore
+│   ├── cleanup__airflow_logs.py
+│   ├── cleanup__vscode_server.py
+│   ├── dbt__freshness_test.py
+│   ├── dbt__refresh_data_catalog.py
+│   ├── etl__finance.py
+│   ├── etl__nyc_opendata_fhv.py
+│   ├── etl__openweather.py
+│   ├── etl__ph_news.py
+│   ├── etl__usgs_earthquake.py
+│   └── helper_functions
+│       ├── README.md
+│       ├── __init__.py                 # required by Airflow for helper function directories
+│       └── alerts.py                   # contains send_slack_alert for failed task runs
+├── logs                                # task logs, also accessible via the UI
+├── variables.json                      # airflow variables (input this via Airflow webserver)
+└── webserver_config.py                 # generated when `airflow webserver` runs; stores webserver settings
 
 ````
 
